@@ -41,7 +41,7 @@ class Phlex(CMakePackage, FnalGithubPackage):
 
     depends_on("boost@1.88.0: +json+program_options")
     depends_on("fmt@11.2:")
-    depends_on("jsonnet")
+    depends_on("libjsonnet")  # virtual: go-jsonnet (default) or C/C++ jsonnet
     depends_on("spdlog")
     depends_on("tbb")
     depends_on("catch2", type=("build", "test"))
