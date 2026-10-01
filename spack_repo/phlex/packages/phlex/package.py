@@ -45,6 +45,12 @@ class Phlex(CMakePackage, FnalGithubPackage):
 
     depends_on("cmake@3.31:", type="build")
     depends_on("cxx", type="build")
+    # phlex's CMakeLists obtains cetmodules, Catch2, Microsoft GSL and mimicpp
+    # via FetchContent with FIND_PACKAGE_ARGS: an installed package is used if
+    # found, otherwise it is git-cloned at configure time.  Provide the ones
+    # Spack packages so the build does not download them.  (mimicpp has no
+    # Spack package and is still fetched, although nothing in phlex uses it.)
+    depends_on("cetmodules@4.01.01:", type="build", when="@0.3:")
 
     depends_on("boost@1.88.0: +json+program_options")
     depends_on("cppgsl@4:", when="@0.4:")
@@ -61,7 +67,7 @@ class Phlex(CMakePackage, FnalGithubPackage):
         else:
             requires("^[virtuals=tbb] intel-oneapi-tbb@2023:")
 
-    depends_on("catch2", type=("build", "test"))
+    depends_on("catch2@3:", type=("build", "test"))
 
     # Python dependencies
     depends_on("python@3.12:")
