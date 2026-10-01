@@ -55,7 +55,11 @@ class Phlex(CMakePackage, FnalGithubPackage):
     depends_on("boost@1.88.0: +json+program_options")
     depends_on("cppgsl@4:", when="@0.4:")
     depends_on("fmt@11.2:")
-    depends_on("jsonnet")
+    # Any Jsonnet engine that provides the C++ wrapper (libjsonnet++) and a
+    # `jsonnet` executable: phlex's Modules/Findjsonnet.cmake finds them by name,
+    # so it is engine-agnostic.  Providers of the `libjsonnet` virtual are the
+    # C++ `jsonnet` and `go-jsonnet +shared` (see the wire-cell-spack repo).
+    depends_on("libjsonnet")
     depends_on("spdlog")
     depends_on("tbb")
     # TBB providers currently declare an unversioned ``provides("tbb")``, so a
