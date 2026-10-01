@@ -65,7 +65,12 @@ class Phlex(CMakePackage, FnalGithubPackage):
         if sys.platform == "darwin":
             requires("^[virtuals=tbb] intel-tbb@2023:")
         else:
-            requires("^[virtuals=tbb] intel-oneapi-tbb@2023:")
+            # Either the Intel binary distribution or the source-built oneTBB.
+            requires(
+                "^[virtuals=tbb] intel-oneapi-tbb@2023:",
+                "^[virtuals=tbb] intel-tbb@2023:",
+                policy="any_of",
+            )
 
     depends_on("catch2@3:", type=("build", "test"))
 
