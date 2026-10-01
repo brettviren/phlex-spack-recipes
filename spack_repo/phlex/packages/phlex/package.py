@@ -75,8 +75,14 @@ class Phlex(CMakePackage, FnalGithubPackage):
         depends_on("libffi")  # Used in combination with numba
 
     with when("+form"):
+        # FORM links only ROOT::Core, ROOT::RIO, ROOT::Tree and ROOT::ROOTNTuple.
+        # ROOTNTuple is part of core ROOT since 6.34, so +root7 (the ROOT 7
+        # "experimental" GUI/graphics libraries) is not needed.
         for std in (20, 23):
-            depends_on(f"root +root7 cxxstd={std}", when=f"cxxstd={std}")
+            depends_on(f"root cxxstd={std}", when=f"cxxstd={std}")
+        # form/root_storage (v0.4) includes <ROOT/RNTupleTypes.hxx>, which first
+        # appears in ROOT 6.38.00 (it was RNTupleUtil.hxx before).
+        depends_on("root@6.38:", when="@0.4:")
 
     @cmake_preset
     def cmake_args(self):
