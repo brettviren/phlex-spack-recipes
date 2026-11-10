@@ -3,10 +3,27 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import sys
+from importlib import import_module
+
 from spack_repo.builtin.build_systems.cmake import CMakePackage
 from spack_repo.fnal_art.packages.fnal_github_package.package import *
 
 from spack.package import *
+
+# Support builtin repository snapshots from before the cppgsl rename.
+try:
+    import_module("spack_repo.builtin.packages.ms_gsl.package")
+except ModuleNotFoundError as exc:
+    # Distinguish "not present" from "failed to load"
+    if exc.name not in {
+        "spack_repo.builtin.packages.ms_gsl",
+        "spack_repo.builtin.packages.ms_gsl.package",
+    }:
+        raise
+    _gsl_dependency = "cppgsl@4:"
+else:
+    _gsl_dependency = "ms-gsl@4:"
 
 
 class Phlex(CMakePackage, FnalGithubPackage):
@@ -23,6 +40,11 @@ class Phlex(CMakePackage, FnalGithubPackage):
     version("develop", branch="main", get_full_repo=True)
 
     # Released versions
+    version("0.4.3", sha256="2dd95ed463971221c3f8d58893729ebdcd79d1da12d891038237b0eab872a864")
+    version("0.4.2", sha256="117fa5cf2d9cb1cdd43c157f5961758e3e4fec60951b637743dcdfd6a3e1a393")
+    version("0.4.1", sha256="0067d84f3c132a63f5c5a447efac706ae3b79e841733024ea51e7428fd9dd670")
+    # 0.4.0 does not build correctly; use 0.4.1 or newer
+    version("0.4.0", sha256="4b30a5eb82127087df84010fe80227a4357d893c6c35aadec4c87a817303552b", deprecated=True)
     version("0.3.2", sha256="0b10cd4ab6c43019fb2c216014f4666bc643647a06a464815a2a5c6f1536ce89")
     version("0.3.1", sha256="1689fced4229b82be54269b2e785ad75f65869dbbbe0275194620294bc9b9095")
     version("0.3.0", sha256="2219a7f504873563b8befd85afd5ddc2a8a3b1ffe8e61caf219cdc4609271408")
@@ -43,10 +65,21 @@ class Phlex(CMakePackage, FnalGithubPackage):
     depends_on("cxx", type="build")
 
     depends_on("boost@1.88.0: +json+program_options")
+    depends_on(_gsl_dependency, when="@0.4:")
     depends_on("fmt@11.2:")
     depends_on("libjsonnet")  # virtual: go-jsonnet (default) or C/C++ jsonnet
     depends_on("spdlog")
     depends_on("tbb")
+    # TBB providers currently declare an unversioned ``provides("tbb")``, so a
+    # virtual constraint such as ``tbb@2023:`` does not constrain the provider's
+    # package version. Select and version the concrete provider explicitly.
+    for phlex_versions, tbb_versions in (
+        ("@0.4", "@2023:"),
+        ("@0.5:", "@2023.2:"),
+    ):
+        with when(phlex_versions):
+            requires(f"^[virtuals=tbb] intel-tbb{tbb_versions}")
+
     depends_on("catch2", type=("build", "test"))
 
     # Python dependencies
